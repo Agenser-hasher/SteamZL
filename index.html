@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SteamZL - Free Steam Manifest &amp; Lua Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+:root {
+  /* Primitive Color Tokens */
+  --color-white: rgba(255, 255, 255, 1);
+  --color-black: rgba(0, 0, 0, 1);
+  --color-cream-50: rgba(252, 252, 249, 1);
+  --color-cream-100: rgba(255, 255, 253, 1);
+  --color-gray-200: rgba(245, 245, 245, 1);
+  --color-gray-300: rgba(167, 169, 169, 1);
+  --color-gray-400: rgba(119, 124, 124, 1);
+  --color-slate-500: rgba(98, 108, 113, 1);
+  --color-brown-600: rgba(94, 82, 64, 1);
+  --color-charcoal-700: rgba(31, 33, 33, 1);
+  --color-charcoal-800: rgba(38, 40, 40, 1);
+  --color-slate-900: rgba(19, 52, 59, 1);
+  --color-teal-300: rgba(50, 184, 198, 1);
+  --color-teal-400: rgba(45, 166, 178, 1);
+  --color-teal-500: rgba(33, 128, 141, 1);
+  --color-teal-600: rgba(29, 116, 128, 1);
+  --color-teal-700: rgba(26, 104, 115, 1);
+  --color-teal-800: rgba(41, 150, 161, 1);
+  --color-red-400: rgba(255, 84, 89, 1);
+  --color-red-500: rgba(192, 21, 47, 1);
+  --color-orange-400: rgba(230, 129, 97, 1);
+  --color-orange-500: rgba(168, 75, 47, 1);
+
+  /* Purple theme colors */
+  --color-purple-primary: #8B5CF6;
+  --color-purple-dark: #6D28D9;
+  --color-purple-light: #A78BFA;
+  --color-purple-hover: #7C3AED;
+
+  /* RGB versions for opacity control */
+  --color-brown-600-rgb: 94, 82, 64;
+  --color-teal-500-rgb: 33, 128, 141;
+  --color-slate-900-rgb: 19, 52, 59;
+  --color-slate-500-rgb: 98, 108, 113;
+  --color-red-500-rgb: 192, 21, 47;
+  --color-red-400-rgb: 255, 84, 89;
+  --color-orange-500-rgb: 168, 75, 47;
+  --color-orange-400-rgb: 230, 129, 97;
+
+  /* Background color tokens (Light Mode) */
+  --color-bg-1: rgba(59, 130, 246, 0.08);
+  --color-bg-2: rgba(245, 158, 11, 0.08);
+  --color-bg-3: rgba(34, 197, 94, 0.08);
+  --color-bg-4: rgba(239, 68, 68, 0.08);
+  --color-bg-5: rgba(147, 51, 234, 0.08);
+  --color-bg-6: rgba(249, 115, 22, 0.08);
+  --color-bg-7: rgba(236, 72, 153, 0.08);
+  --color-bg-8: rgba(6, 182, 212, 0.08);
+
+  /* Semantic Color Tokens (Light Mode) */
+  --color-background: var(--color-cream-50);
+  --color-surface: var(--color-cream-100);
+  --color-text: var(--color-slate-900);
+  --color-text-secondary: var(--color-slate-500);
+  --color-primary: var(--color-teal-500);
+  --color-primary-hover: var(--color-teal-600);
+  --color-primary-active: var(--color-teal-700);
+  --color-secondary: rgba(var(--color-brown-600-rgb), 0.12);
+  --color-secondary-hover: rgba(var(--color-brown-600-rgb), 0.2);
+  --color-secondary-active: rgba(var(--color-brown-600-rgb), 0.25);
+  --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+  --color-btn-primary-text: var(--color-cream-50);
+  --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+  --color-card-border-inner: rgba(var(--color-brown-600-rgb), 0.12);
+  --color-error: var(--color-red-500);
+  --color-success: var(--color-teal-500);
+  --color-warning: var(--color-orange-500);
+  --color-info: var(--color-slate-500);
+  --color-focus-ring: rgba(var(--color-teal-500-rgb), 0.4);
+  --color-select-caret: rgba(var(--color-slate-900-rgb), 0.8);
+
+  /* Common style patterns */
+  --focus-ring: 0 0 0 3px var(--color-focus-ring);
+  --focus-outline: 2px solid var(--color-primary);
+  --status-bg-opacity: 0.15;
+  --status-border-opacity: 0.25;
+
+  /* Typography */
+  --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, monospace;
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 20px;
+  --font-size-3xl: 24px;
+  --font-size-4xl: 30px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 550;
+  --font-weight-bold: 600;
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --letter-spacing-tight: -0.01em;
+
+  /* Spacing */
+  --space-0: 0;
+  --space-1: 1px;
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-base: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04),
+    0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+
+  /* Animation */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Layout */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+}
+
+@font-face {
+  font-family: 'FKGroteskNeue';
+  src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2')
+    format('woff2');
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family-base);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: var(--color-white);
+  padding: var(--space-24);
+  line-height: var(--line-height-normal);
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--space-32);
+}
+
+.header h1 {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-12);
+  color: var(--color-white);
+}
+
+.header p {
+  font-size: var(--font-size-lg);
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: var(--space-8);
+}
+
+.header .subtitle {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-lg);
+  padding: var(--space-24);
+  margin-bottom: var(--space-24);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  color: var(--color-text);
+}
+
+.card h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-16);
+  color: var(--color-purple-dark);
+}
+
+.card h3 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-12);
+  color: var(--color-purple-dark);
+}
+
+.form-group {
+  margin-bottom: var(--space-16);
+}
+
+.form-label {
+  display: block;
+  margin-bottom: var(--space-8);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.form-control {
+  width: 100%;
+  padding: var(--space-12);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--color-purple-primary);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+textarea.form-control {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.btn {
+  display: inline-block;
+  padding: var(--space-12) var(--space-24);
+  border: none;
+  border-radius: var(--radius-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-standard);
+  text-align: center;
+  font-family: var(--font-family-base);
+}
+
+.btn-primary {
+  background: var(--color-purple-primary);
+  color: var(--color-white);
+}
+
+.btn-primary:hover {
+  background: var(--color-purple-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.btn-primary:disabled {
+  background: var(--color-gray-300);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--color-purple-dark);
+  border: 1px solid var(--color-purple-primary);
+}
+
+.btn-secondary:hover {
+  background: rgba(139, 92, 246, 0.2);
+}
+
+.btn-success {
+  background: #10B981;
+  color: var(--color-white);
+}
+
+.btn-success:hover {
+  background: #059669;
+}
+
+.btn-small {
+  padding: var(--space-8) var(--space-16);
+  font-size: var(--font-size-sm);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.button-group {
+  display: flex;
+  gap: var(--space-12);
+  flex-wrap: wrap;
+}
+
+.alert {
+  padding: var(--space-12);
+  border-radius: var(--radius-base);
+  margin-bottom: var(--space-16);
+  font-size: var(--font-size-sm);
+}
+
+.alert-success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.alert-info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--color-white);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: var(--space-8);
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin: var(--space-16) 0;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--color-purple-primary);
+  transition: width var(--duration-normal) var(--ease-standard);
+}
+
+.features-list {
+  list-style: none;
+  padding: 0;
+}
+
+.features-list li {
+  padding: var(--space-8) 0;
+  padding-left: var(--space-24);
+  position: relative;
+}
+
+.features-list li:before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--color-purple-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.test-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  margin-bottom: var(--space-16);
+  padding: var(--space-12);
+  background: rgba(139, 92, 246, 0.05);
+  border-radius: var(--radius-base);
+}
+
+.toggle-switch {
+  position: relative;
+  width: 48px;
+  height: 24px;
+  background: var(--color-gray-300);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+
+.toggle-switch.active {
+  background: var(--color-purple-primary);
+}
+
+.toggle-switch-handle {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: var(--color-white);
+  border-radius: 50%;
+  transition: transform var(--duration-fast);
+}
+
+.toggle-switch.active .toggle-switch-handle {
+  transform: translateX(24px);
+}
+
+.download-section {
+  margin-top: var(--space-16);
+  padding: var(--space-16);
+  background: rgba(139, 92, 246, 0.05);
+  border-radius: var(--radius-base);
+}
+
+.file-preview {
+  background: var(--color-charcoal-700);
+  color: var(--color-gray-200);
+  padding: var(--space-16);
+  border-radius: var(--radius-base);
+  margin: var(--space-16) 0;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  overflow-x: auto;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.hidden {
+  display: none;
+}
+
+.separator {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-24) 0;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+  border-bottom: 2px solid rgba(139, 92, 246, 0.2);
+}
+
+.tab {
+  padding: var(--space-12) var(--space-20);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  transition: all var(--duration-fast);
+  margin-bottom: -2px;
+}
+
+.tab:hover {
+  color: var(--color-purple-primary);
+}
+
+.tab.active {
+  color: var(--color-purple-primary);
+  border-bottom-color: var(--color-purple-primary);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.version-badge {
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #E9D5FF;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.version-badge-author {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-white);
+  display: block;
+}
+
+.version-badge-version {
+  font-size: 11px;
+  color: #E9D5FF;
+  opacity: 0.9;
+  display: block;
+  margin-top: 2px;
+}
+
+/* Disclaimer Footer */
+.disclaimer-footer {
+  background: rgba(0, 0, 0, 0.7);
+  color: #E9D5FF;
+  padding: var(--space-24);
+  margin-top: var(--space-32);
+  border-top: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(4px);
+  text-align: center;
+  line-height: 1.8;
+}
+
+.disclaimer-footer h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-white);
+  margin-bottom: var(--space-12);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.disclaimer-footer p {
+  font-size: 12px;
+  margin-bottom: var(--space-12);
+  color: #E9D5FF;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.disclaimer-footer .footer-meta {
+  margin-top: var(--space-16);
+  padding-top: var(--space-16);
+  border-top: 1px solid rgba(139, 92, 246, 0.2);
+  font-size: 11px;
+  color: rgba(233, 213, 255, 0.7);
+}
+
+.disclaimer-footer .footer-links {
+  margin-top: var(--space-12);
+  display: flex;
+  justify-content: center;
+  gap: var(--space-16);
+  flex-wrap: wrap;
+}
+
+.disclaimer-footer .footer-links a {
+  color: var(--color-purple-light);
+  text-decoration: none;
+  transition: color var(--duration-fast);
+}
+
+.disclaimer-footer .footer-links a:hover {
+  color: var(--color-white);
+}
+
+/* Snow Animation */
+.snowflake {
+  position: fixed;
+  top: -10px;
+  z-index: 1;
+  color: #FFFFFF;
+  font-size: 1em;
+  pointer-events: none;
+  animation: fall linear infinite;
+  opacity: 0;
+}
+
+@keyframes fall {
+  0% {
+    opacity: 0;
+    transform: translateY(0) rotate(0deg);
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(360deg);
+  }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SteamZL - Free Steam Manifest &amp; Lua Generator</h1>
+            <p>Manifest &amp; Lua Generator for Steam — made by OPV. (Not affiliated with Valve or Steam.)</p>
+            <p class="subtitle">Ad-free, open source tool for generating Steam manifest and Lua files</p>
+        </div>
+
+        <!-- Test Mode Toggle -->
+        <div class="card">
+            <div class="test-mode-toggle">
+                <div class="toggle-switch" id="testModeToggle">
+                    <div class="toggle-switch-handle"></div>
+                </div>
+                <label style="cursor: pointer; user-select: none;" onclick="toggleTestMode()">Test Mode</label>
+                <button class="btn btn-secondary btn-small" id="quickTestBtn" onclick="quickTest()" style="margin-left: auto; display: none;">Quick Test</button>
+            </div>
+        </div>
+
+        <!-- Main Generator Card -->
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('single')">Single Download</button>
+                <button class="tab" onclick="switchTab('multi')">Multi Download</button>
+                <button class="tab" onclick="switchTab('dlc')">DLC Unlocker</button>
+                <button class="tab" onclick="switchTab('help')">Help</button>
+            </div>
+
+            <!-- Single Download Tab -->
+            <div id="singleTab" class="tab-content active">
+                <h3>Single App ID Generator</h3>
+                <div class="form-group">
+                    <label class="form-label" for="singleAppId">Steam App ID</label>
+                    <input type="text" id="singleAppId" class="form-control" placeholder="Enter Steam App ID (e.g., 730)">
+                </div>
+                <button class="btn btn-primary btn-block" onclick="generateSingle()">Generate &amp; Download</button>
+                
+                <div id="singleLoading" class="hidden" style="margin-top: 16px; text-align: center;">
+                    <span class="spinner"></span> Generating files...
+                </div>
+                
+                <div id="singleResult" class="hidden download-section">
+                    <div id="singleAlert"></div>
+                    <button class="btn btn-success btn-block" onclick="downloadSingleZip()">Download ZIP Package</button>
+                </div>
+            </div>
+
+            <!-- Multi Download Tab -->
+            <div id="multiTab" class="tab-content">
+                <h3>Multi App ID Generator</h3>
+                <div class="form-group">
+                    <label class="form-label" for="multiAppIds">Steam App IDs (one per line or comma-separated)</label>
+                    <textarea id="multiAppIds" class="form-control" placeholder="Enter multiple App IDs (one per line or comma-separated)&#10;Example:&#10;730&#10;440&#10;570"></textarea>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="generateMulti()" style="flex: 1;">Generate All &amp; Download ZIP</button>
+                    <button class="btn btn-secondary" onclick="clearMulti()">Clear</button>
+                </div>
+                
+                <div id="multiLoading" class="hidden" style="margin-top: 16px;">
+                    <div style="text-align: center; margin-bottom: 8px;">
+                        <span class="spinner"></span> <span id="multiProgress">Generating files...</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+                    </div>
+                </div>
+                
+                <div id="multiResult" class="hidden download-section">
+                    <div id="multiAlert"></div>
+                    <button class="btn btn-success btn-block" onclick="downloadZip()">Download ZIP Archive</button>
+                </div>
+            </div>
+
+            <!-- DLC Unlocker Tab -->
+            <div id="dlcTab" class="tab-content">
+                <h3>SteamZL DLC Unlocker / Loader</h3>
+                <div class="alert alert-info" style="margin-bottom: 16px;">
+                    <strong>Note:</strong> DLC unlocker not made by me. This tool generates loader files compatible with Steam emulators.
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="baseGameId">Base Game App ID</label>
+                    <input type="text" id="baseGameId" class="form-control" placeholder="Enter base game App ID (e.g., 271590 for GTA V)">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="dlcAppIds">DLC App IDs (one per line or comma-separated)</label>
+                    <textarea id="dlcAppIds" class="form-control" placeholder="Enter DLC App IDs (one per line or comma-separated)&#10;Example:&#10;292710&#10;2778580"></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="generateDLCLoader()" style="flex: 1;">Generate DLC Loader</button>
+                    <button class="btn btn-secondary" onclick="clearDLC()">Clear</button>
+                </div>
+                
+                <div id="dlcLoading" class="hidden" style="margin-top: 16px;">
+                    <div style="text-align: center; margin-bottom: 8px;">
+                        <span class="spinner"></span> <span id="dlcProgress">Generating DLC files...</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" id="dlcProgressBarFill" style="width: 0%;"></div>
+                    </div>
+                </div>
+                
+                <div id="dlcResult" class="hidden download-section">
+                    <div id="dlcAlert"></div>
+                    <button class="btn btn-success btn-block" onclick="downloadDLCZip()" style="margin-top: 12px;">Generate &amp; Download</button>
+                    <div id="dlcFileList" class="file-preview" style="margin-top: 16px;"></div>
+                </div>
+            </div>
+
+            <!-- Help Tab -->
+            <div id="helpTab" class="tab-content">
+                <h3>SteamML Loader Download</h3>
+                
+                <!-- Quick Start Section with Download Buttons -->
+                <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(109, 40, 217, 0.05)); padding: 24px; border-radius: 12px; margin-bottom: 32px; border: 2px solid rgba(139, 92, 246, 0.3);">
+                    <h4 style="color: var(--color-purple-dark); margin-bottom: 16px; font-size: var(--font-size-xl); text-align: center;">📥 Quick Start - Download SteamML Loader</h4>
+                    <p style="text-align: center; margin-bottom: 20px; line-height: 1.7; color: var(--color-text-secondary);">Download the official SteamML Loader tool to use with your generated manifest files</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                        <!-- Download Button -->
+                        <div style="background: var(--color-white); padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; border: 1px solid rgba(139, 92, 246, 0.2);">
+                            <div style="font-size: 32px; margin-bottom: 12px;">📥</div>
+                            <button class="btn btn-primary btn-block" onclick="window.open('https://pub-5b6d3b7c03fd4ac1afb5bd3017850e20.r2.dev/SteamML%20Loader.zip','_blank','noopener,noreferrer')" style="margin-bottom: 8px;">Download SteamML Loader</button>
+                            <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0;">Get the official SteamML Loader tool</p>
+                        </div>
+                        
+                        <!-- Virus Total Button -->
+                        <div style="background: var(--color-white); padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            <div style="font-size: 32px; margin-bottom: 12px;">✓</div>
+                            <button class="btn btn-success btn-block" onclick="window.open('https://www.virustotal.com/gui/file/eaf158806cbfdd1ff6c12970277b78ba1386eb3d01bfce24c0ed2f56e194a2fc/detection','_blank','noopener,noreferrer')" style="margin-bottom: 8px;">Check Safety ✓</button>
+                            <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0;">Scan verified - Safe to download</p>
+                        </div>
+                        
+                        <!-- Source Code Button -->
+                        <div style="background: var(--color-white); padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; border: 1px solid rgba(59, 130, 246, 0.3);">
+                            <div style="font-size: 32px; margin-bottom: 12px;">📄</div>
+                            <button class="btn btn-secondary btn-block" onclick="window.open('https://steamml.vercel.app/stmlsc.txt','_blank','noopener,noreferrer')" style="margin-bottom: 8px;">View Source Code</button>
+                            <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0;">View the source code for transparency</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Safety Information -->
+                    <div style="background: rgba(16, 185, 129, 0.05); padding: 16px; border-radius: 8px; border-left: 4px solid #10B981; margin-top: 16px;">
+                        <p style="margin: 0; line-height: 1.7; font-size: var(--font-size-sm);"><strong>✅ Safety Information:</strong></p>
+                        <ul style="margin: 8px 0 0 20px; line-height: 1.7; font-size: var(--font-size-sm);">
+                            <li>SteamML Loader has been verified on VirusTotal</li>
+                            <li>Open source project - code available for review</li>
+                            <li>Not affiliated with Valve or Steam</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h3>SteamZL Loader Guide</h3>
+                
+                <div style="margin-bottom: 24px;">
+                    <h4 style="color: var(--color-purple-dark); margin-bottom: 8px; font-size: var(--font-size-lg);">📖 What is a Manifest File?</h4>
+                    <p style="line-height: 1.7;">Manifest files (.acf) are Steam AppManifest files that tell Steam about installed games. They contain the App ID, installation directory, and other metadata. These files are essential for Steam to recognize and manage game installations.</p>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <h4 style="color: var(--color-purple-dark); margin-bottom: 8px; font-size: var(--font-size-lg);">🔧 What is a Lua File?</h4>
+                    <p style="line-height: 1.7;">Lua files are script files that execute code to add app IDs to your Steam instance. They work with SteamTools and other Steam emulators to load games and DLC. When executed, these scripts register applications with the emulator.</p>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <h4 style="color: var(--color-purple-dark); margin-bottom: 8px; font-size: var(--font-size-lg);">📥 Installation Steps</h4>
+                    <ol style="margin-left: 20px; line-height: 1.8;">
+                        <li><strong>Generate your manifest files</strong> using SteamZL (use any of the generator tabs above)</li>
+                        <li><strong>Copy .acf files</strong> to your <code style="background: rgba(139, 92, 246, 0.1); padding: 2px 6px; border-radius: 4px;">Steam/steamapps</code> folder</li>
+                        <li><strong>Copy .lua files</strong> to your loader directory (typically in your Steam emulator folder)</li>
+                        <li><strong>Restart Steam</strong> or your loader application</li>
+                        <li><strong>Games should now appear</strong> in your library</li>
+                    </ol>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <h4 style="color: var(--color-purple-dark); margin-bottom: 8px; font-size: var(--font-size-lg);">⚡ Activating the Loader</h4>
+                    <p style="line-height: 1.7;">The loader activates automatically when placed in the correct directory. Most Steam emulators will execute .lua files on startup. If your emulator has a scripts or plugins folder, place the loader.lua file there. The loader will initialize when you launch the emulator.</p>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <h4 style="color: var(--color-purple-dark); margin-bottom: 8px; font-size: var(--font-size-lg);">🎮 DLC Unlocker</h4>
+                    <p style="line-height: 1.7;">Use SteamZL's DLC Unlocker tab to generate DLC manifests. These work alongside base game manifests to unlock DLC content. Simply provide the base game App ID and the DLC App IDs you want to unlock. The generated loader file will register all DLCs with your emulator.</p>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <h4 style="color: var(--color-purple-dark); margin-bottom: 8px; font-size: var(--font-size-lg);">✅ Compatibility</h4>
+                    <div class="alert alert-info" style="margin-top: 8px;">
+                        <strong>Supported Tools:</strong> SteamZL works with Goldberg emulator, SmartSteamLoader, and similar Steam emulation tools. Not compatible with official Steam client.
+                    </div>
+                    <ul style="margin-left: 20px; line-height: 1.8; margin-top: 12px;">
+                        <li><strong>Goldberg Steam Emulator</strong> - Full compatibility</li>
+                        <li><strong>SmartSteamLoader</strong> - Full compatibility</li>
+                        <li><strong>SteamTools</strong> - Full compatibility</li>
+                        <li><strong>Other Lua-based emulators</strong> - Usually compatible</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <h4 style="color: var(--color-purple-dark); margin-bottom: 8px; font-size: var(--font-size-lg);">🔍 Troubleshooting</h4>
+                    <div style="background: rgba(239, 68, 68, 0.05); padding: 16px; border-radius: 8px; border-left: 4px solid #DC2626;">
+                        <p style="margin-bottom: 12px; line-height: 1.7;"><strong>❌ Games not appearing:</strong></p>
+                        <ul style="margin-left: 20px; line-height: 1.7; margin-bottom: 16px;">
+                            <li>Verify folder paths are correct</li>
+                            <li>Check that .acf files are in Steam/steamapps</li>
+                            <li>Ensure Steam or emulator has been restarted</li>
+                        </ul>
+                        
+                        <p style="margin-bottom: 12px; line-height: 1.7;"><strong>❌ DLC not loading:</strong></p>
+                        <ul style="margin-left: 20px; line-height: 1.7; margin-bottom: 16px;">
+                            <li>Verify base game ID in loader is correct</li>
+                            <li>Check that both base game and DLC manifests are present</li>
+                            <li>Ensure loader.lua is in the correct scripts directory</li>
+                        </ul>
+                        
+                        <p style="margin-bottom: 12px; line-height: 1.7;"><strong>❌ Permission errors:</strong></p>
+                        <ul style="margin-left: 20px; line-height: 1.7;">
+                            <li>Run as administrator</li>
+                            <li>Check folder permissions for write access</li>
+                            <li>Disable antivirus temporarily if blocking file operations</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <h4 style="color: var(--color-purple-dark); margin-bottom: 8px; font-size: var(--font-size-lg);">📄 File Format Explanation</h4>
+                    <p style="margin-bottom: 12px; line-height: 1.7;"><strong>Manifest File (.acf) Structure:</strong></p>
+                    <div class="file-preview" style="margin-bottom: 16px;">
+"AppState"
+{
+    "AppID"  "730"           // Game's unique identifier
+    "Universe"  "1"          // Steam universe (always 1)
+    "installdir"  "game_730" // Installation directory name
+    "StateFlags"  "1026"     // Installation state flags
+}</div>
+                    
+                    <p style="margin-bottom: 12px; line-height: 1.7;"><strong>Lua File Structure:</strong></p>
+                    <div class="file-preview" style="margin-bottom: 16px;">
+addappid(730, 1, "K_Game_730")
+// Parameters:
+// - 730: App ID
+// - 1: Universe ID
+// - "K_Game_730": Internal identifier key</div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: var(--color-purple-dark); margin-bottom: 8px; font-size: var(--font-size-lg);">🔎 Finding App IDs</h4>
+                    <ul style="margin-left: 20px; line-height: 1.8;">
+                        <li>Visit <a href="https://steamdb.info" target="_blank" style="color: var(--color-purple-primary);">SteamDB.info</a></li>
+                        <li>Search for your game</li>
+                        <li>The App ID is displayed prominently on the game's page</li>
+                        <li>For DLCs, click the "DLC" tab to see all DLC App IDs</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: var(--color-purple-dark); margin-bottom: 8px; font-size: var(--font-size-lg);">📋 Example Games with DLC</h4>
+                    <ul style="margin-left: 20px; line-height: 1.8;">
+                        <li><strong>Grand Theft Auto V</strong> (271590) - DLC: 292710</li>
+                        <li><strong>Elden Ring</strong> (1312450) - DLC: 2778580 (Shadow of the Erdtree)</li>
+                        <li><strong>Counter-Strike: Global Offensive</strong> (730) - Free game</li>
+                        <li><strong>Stardew Valley</strong> (413150) - Single player game</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-error" style="margin-top: 12px;">
+                    <strong>⚠ Important Disclaimer:</strong> DLC unlocker functionality not created by the original SteamZL author. Use responsibly and only with content you legally own. This tool is for educational and testing purposes only.
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="card">
+            <h2>How It Works</h2>
+            <p style="margin-bottom: 12px;"><strong>What are App IDs?</strong></p>
+            <p style="margin-bottom: 16px;">App IDs are unique identifiers for games and applications on Steam. Each game has its own App ID that Steam uses to identify it.</p>
+            
+            <p style="margin-bottom: 12px;"><strong>How to find App IDs:</strong></p>
+            <ul style="margin-left: 20px; margin-bottom: 16px;">
+                <li>Visit <a href="https://steamdb.info" target="_blank" style="color: var(--color-purple-primary);">SteamDB.info</a></li>
+                <li>Search for your game</li>
+                <li>The App ID is displayed on the game's page</li>
+            </ul>
+            
+            <p style="margin-bottom: 12px;"><strong>Using the generated files:</strong></p>
+            <p>The generated .acf manifest files and .lua files can be used with Steamtools to add online functionality to your games. Place the manifest files in your Steam userdata folder and the lua files in the appropriate directory.</p>
+        </div>
+
+        <!-- Features -->
+        <div class="card">
+            <h2>Features</h2>
+            <ul class="features-list">
+                <li>Add online functionality to your Steamtools games</li>
+                <li>Safer alternative to Steamtool and easier to use</li>
+                <li>Open source</li>
+                <li>Ad-free experience</li>
+                <li>Multi-download support for batch processing</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let testMode = false;
+        let currentTab = 'single';
+        let singleAppData = null;
+        let multiZipData = null;
+        let dlcZipData = null;
+        let dlcLoaderData = null;
+        
+        const sampleAppIds = [
+            { id: 730, name: "Counter-Strike: Global Offensive" },
+            { id: 440, name: "Team Fortress 2" },
+            { id: 570, name: "Dota 2" },
+            { id: 271590, name: "Grand Theft Auto V" },
+            { id: 413150, name: "Stardew Valley" }
+        ];
+
+        // Template functions
+        function generateManifest(appId) {
+            return `"AppState"
+{
+    "AppID"  "${appId}"
+    "Universe"  "1"
+    "installdir"  "game_${appId}"
+    "StateFlags"  "1026"
+}`;
+        }
+
+        function generateLua(appId) {
+            return `addappid(${appId}, 1, "K_Game_${appId}")`;
+        }
+
+        function generateDLCManifest(dlcAppId, baseGameId) {
+            return `"AppState"
+{
+    "AppID"  "${dlcAppId}"
+    "Universe"  "1"
+    "installdir"  "dlc_${dlcAppId}"
+    "StateFlags"  "1026"
+    "BaseAppID"  "${baseGameId}"
+}`;
+        }
+
+        function generateDLCLoaderFile(baseGameId, dlcIds) {
+            const date = new Date().toISOString().split('T')[0];
+            const dlcListString = dlcIds.map(id => `        ${id}`).join(',\n');
+            
+            return `-- SteamZL DLC Loader
+-- Base Game: ${baseGameId}
+-- Generated DLCs: ${dlcIds.length}
+-- Generated on: ${date}
+
+local baseGameId = ${baseGameId}
+local dlcList = {
+${dlcListString}
+}
+
+function LoadDLCs()
+    for i, dlcId in ipairs(dlcList) do
+        addappid(dlcId, baseGameId, "K_DLC_" .. dlcId)
+    end
+end
+
+function UnloadDLCs()
+    -- DLC cleanup if needed
+end
+
+LoadDLCs()`;
+        }
+
+        // Validation
+        function validateAppId(appId) {
+            const trimmed = appId.trim();
+            if (!trimmed) return { valid: false, error: "App ID cannot be empty" };
+            if (!/^\d+$/.test(trimmed)) return { valid: false, error: "App ID must be numeric" };
+            return { valid: true, id: trimmed };
+        }
+
+        function parseMultipleAppIds(input) {
+            const lines = input.split(/[\n,]/).map(line => line.trim()).filter(line => line);
+            const results = [];
+            const errors = [];
+            
+            lines.forEach((line, index) => {
+                const validation = validateAppId(line);
+                if (validation.valid) {
+                    results.push(validation.id);
+                } else {
+                    errors.push(`Line ${index + 1}: ${validation.error}`);
+                }
+            });
+            
+            return { appIds: results, errors };
+        }
+
+        // Download functions
+        function downloadFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Single download functions
+        async function generateSingle() {
+            const input = document.getElementById('singleAppId').value;
+            const validation = validateAppId(input);
+            
+            if (!validation.valid) {
+                showSingleResult(false, validation.error);
+                return;
+            }
+            
+            const appId = validation.id;
+            document.getElementById('singleLoading').classList.remove('hidden');
+            document.getElementById('singleResult').classList.add('hidden');
+            
+            // Generate ZIP with both files
+            setTimeout(async () => {
+                const zip = new JSZip();
+                zip.file(`appmanifest_${appId}.acf`, generateManifest(appId));
+                zip.file(`${appId}.lua`, generateLua(appId));
+                
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                singleAppData = {
+                    appId: appId,
+                    zipBlob: zipBlob
+                };
+                
+                document.getElementById('singleLoading').classList.add('hidden');
+                showSingleResult(true, `Successfully generated ZIP package for App ID: ${appId} (contains .acf and .lua files)`);
+            }, 500);
+        }
+
+        function showSingleResult(success, message) {
+            const resultDiv = document.getElementById('singleResult');
+            const alertDiv = document.getElementById('singleAlert');
+            
+            alertDiv.className = success ? 'alert alert-success' : 'alert alert-error';
+            alertDiv.textContent = message;
+            resultDiv.classList.remove('hidden');
+            
+            if (!success) {
+                resultDiv.querySelector('.btn-success').style.display = 'none';
+            } else {
+                resultDiv.querySelector('.btn-success').style.display = 'block';
+            }
+        }
+
+        function downloadSingleZip() {
+            if (singleAppData && singleAppData.zipBlob) {
+                const url = URL.createObjectURL(singleAppData.zipBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `appmanifest_${singleAppData.appId}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // Multi download functions
+        async function generateMulti() {
+            const input = document.getElementById('multiAppIds').value;
+            const parsed = parseMultipleAppIds(input);
+            
+            if (parsed.errors.length > 0) {
+                showMultiResult(false, `Errors found:\n${parsed.errors.join('\n')}`);
+                return;
+            }
+            
+            if (parsed.appIds.length === 0) {
+                showMultiResult(false, 'Please enter at least one App ID');
+                return;
+            }
+            
+            document.getElementById('multiLoading').classList.remove('hidden');
+            document.getElementById('multiResult').classList.add('hidden');
+            
+            const zip = new JSZip();
+            const total = parsed.appIds.length;
+            
+            for (let i = 0; i < parsed.appIds.length; i++) {
+                const appId = parsed.appIds[i];
+                const progress = Math.round(((i + 1) / total) * 100);
+                
+                document.getElementById('multiProgress').textContent = `Processing ${i + 1} of ${total}...`;
+                document.getElementById('progressBarFill').style.width = progress + '%';
+                
+                zip.file(`appmanifest_${appId}.acf`, generateManifest(appId));
+                zip.file(`${appId}.lua`, generateLua(appId));
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            multiZipData = zipBlob;
+            
+            document.getElementById('multiLoading').classList.add('hidden');
+            showMultiResult(true, `Successfully generated ${total} manifest files and ${total} lua files (${total * 2} total files)`);
+        }
+
+        function showMultiResult(success, message) {
+            const resultDiv = document.getElementById('multiResult');
+            const alertDiv = document.getElementById('multiAlert');
+            
+            alertDiv.className = success ? 'alert alert-success' : 'alert alert-error';
+            alertDiv.textContent = message;
+            resultDiv.classList.remove('hidden');
+            
+            if (!success) {
+                resultDiv.querySelector('.btn-success').style.display = 'none';
+            } else {
+                resultDiv.querySelector('.btn-success').style.display = 'block';
+            }
+        }
+
+        function downloadZip() {
+            if (multiZipData) {
+                const url = URL.createObjectURL(multiZipData);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'steamzl_manifests_batch.zip';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        function clearMulti() {
+            document.getElementById('multiAppIds').value = '';
+            document.getElementById('multiResult').classList.add('hidden');
+            document.getElementById('multiLoading').classList.add('hidden');
+            multiZipData = null;
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            const tabs = document.querySelectorAll('.tab');
+            if (tab === 'single') {
+                tabs[0].classList.add('active');
+                document.getElementById('singleTab').classList.add('active');
+            } else if (tab === 'multi') {
+                tabs[1].classList.add('active');
+                document.getElementById('multiTab').classList.add('active');
+            } else if (tab === 'dlc') {
+                tabs[2].classList.add('active');
+                document.getElementById('dlcTab').classList.add('active');
+            } else if (tab === 'help') {
+                tabs[3].classList.add('active');
+                document.getElementById('helpTab').classList.add('active');
+            }
+        }
+
+        // Test mode functions
+        function toggleTestMode() {
+            testMode = !testMode;
+            const toggle = document.getElementById('testModeToggle');
+            const quickTestBtn = document.getElementById('quickTestBtn');
+            
+            if (testMode) {
+                toggle.classList.add('active');
+                quickTestBtn.style.display = 'inline-block';
+            } else {
+                toggle.classList.remove('active');
+                quickTestBtn.style.display = 'none';
+            }
+        }
+
+        function quickTest() {
+            if (currentTab === 'single') {
+                document.getElementById('singleAppId').value = '730';
+                generateSingle();
+            } else if (currentTab === 'multi') {
+                const testIds = sampleAppIds.map(app => app.id).join('\n');
+                document.getElementById('multiAppIds').value = testIds;
+            } else if (currentTab === 'dlc') {
+                document.getElementById('baseGameId').value = '271590';
+                document.getElementById('dlcAppIds').value = '292710';
+            }
+        }
+
+        // DLC Unlocker functions
+        async function generateDLCLoader() {
+            const baseGameId = document.getElementById('baseGameId').value;
+            const dlcInput = document.getElementById('dlcAppIds').value;
+            
+            const baseValidation = validateAppId(baseGameId);
+            if (!baseValidation.valid) {
+                showDLCResult(false, 'Base Game Error: ' + baseValidation.error);
+                return;
+            }
+            
+            const parsed = parseMultipleAppIds(dlcInput);
+            if (parsed.errors.length > 0) {
+                showDLCResult(false, `DLC Errors found:\n${parsed.errors.join('\n')}`);
+                return;
+            }
+            
+            if (parsed.appIds.length === 0) {
+                showDLCResult(false, 'Please enter at least one DLC App ID');
+                return;
+            }
+            
+            document.getElementById('dlcLoading').classList.remove('hidden');
+            document.getElementById('dlcResult').classList.add('hidden');
+            
+            const zip = new JSZip();
+            const total = parsed.appIds.length;
+            const baseId = baseValidation.id;
+            
+            // Generate DLC manifests
+            for (let i = 0; i < parsed.appIds.length; i++) {
+                const dlcId = parsed.appIds[i];
+                const progress = Math.round(((i + 1) / (total + 1)) * 100);
+                
+                document.getElementById('dlcProgress').textContent = `Generating DLC ${i + 1} of ${total}...`;
+                document.getElementById('dlcProgressBarFill').style.width = progress + '%';
+                
+                zip.file(`appmanifest_${dlcId}.acf`, generateDLCManifest(dlcId, baseId));
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            // Generate loader file
+            document.getElementById('dlcProgress').textContent = 'Generating loader file...';
+            document.getElementById('dlcProgressBarFill').style.width = '100%';
+            
+            const loaderContent = generateDLCLoaderFile(baseId, parsed.appIds);
+            zip.file(`${baseId}_dlc_loader.lua`, loaderContent);
+            
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            dlcZipData = zipBlob;
+            dlcLoaderData = loaderContent;
+            
+            document.getElementById('dlcLoading').classList.add('hidden');
+            
+            // Show file list
+            let fileListHtml = `<strong>Generated Files:</strong><br><br>`;
+            fileListHtml += `📄 ${baseId}_dlc_loader.lua (Master DLC Loader)<br>`;
+            parsed.appIds.forEach(dlcId => {
+                fileListHtml += `📄 appmanifest_${dlcId}.acf<br>`;
+            });
+            document.getElementById('dlcFileList').innerHTML = fileListHtml;
+            
+            showDLCResult(true, `Successfully generated ${total} DLC manifest files and 1 loader file (${total + 1} total files)`);
+        }
+
+        function showDLCResult(success, message) {
+            const resultDiv = document.getElementById('dlcResult');
+            const alertDiv = document.getElementById('dlcAlert');
+            
+            alertDiv.className = success ? 'alert alert-success' : 'alert alert-error';
+            alertDiv.textContent = message;
+            resultDiv.classList.remove('hidden');
+            
+            if (!success) {
+                resultDiv.querySelector('.btn-success').style.display = 'none';
+                document.getElementById('dlcFileList').style.display = 'none';
+            } else {
+                resultDiv.querySelector('.btn-success').style.display = 'block';
+                document.getElementById('dlcFileList').style.display = 'block';
+            }
+        }
+
+        function downloadDLCZip() {
+            if (dlcZipData) {
+                const baseGameId = document.getElementById('baseGameId').value.trim();
+                const url = URL.createObjectURL(dlcZipData);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dlc_loader_${baseGameId}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        function clearDLC() {
+            document.getElementById('baseGameId').value = '';
+            document.getElementById('dlcAppIds').value = '';
+            document.getElementById('dlcResult').classList.add('hidden');
+            document.getElementById('dlcLoading').classList.add('hidden');
+            dlcZipData = null;
+            dlcLoaderData = null;
+        }
+
+        // Snow animation
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            snowflake.textContent = '❄';
+            
+            // Random properties
+            const startPosition = Math.random() * window.innerWidth;
+            const size = Math.random() * (8 - 2) + 2; // 2px to 8px
+            const duration = Math.random() * (8 - 2) + 2; // 2s to 8s
+            const opacity = Math.random() * (0.9 - 0.7) + 0.7; // 0.7 to 0.9
+            const delay = Math.random() * 5; // 0 to 5s delay
+            
+            snowflake.style.left = startPosition + 'px';
+            snowflake.style.fontSize = size + 'px';
+            snowflake.style.animationDuration = duration + 's';
+            snowflake.style.animationDelay = delay + 's';
+            
+            document.body.appendChild(snowflake);
+            
+            // Remove snowflake after animation completes
+            setTimeout(() => {
+                snowflake.remove();
+                createSnowflake(); // Create a new one
+            }, (duration + delay) * 1000);
+        }
+
+        // Initialize snow animation
+        function initSnow() {
+            const snowflakeCount = 50;
+            for (let i = 0; i < snowflakeCount; i++) {
+                setTimeout(() => {
+                    createSnowflake();
+                }, i * 100); // Stagger creation
+            }
+        }
+
+        // Start snow when page loads
+        window.addEventListener('load', initSnow);
+    </script>
+
+    <!-- Disclaimer Footer -->
+    <footer class="disclaimer-footer">
+        <h3>⚠ Disclaimer</h3>
+        <p>
+            <strong>NOT AFFILIATED WITH VALVE OR STEAM:</strong> This tool is not made by, endorsed by, or affiliated with Valve Corporation or Steam.
+            <br>
+            <strong>OPEN SOURCE PROJECT:</strong> This is an open source project created by rivensis for educational purposes only.
+            <br>
+            <strong>USE AT YOUR OWN RISK:</strong> Users assume full responsibility for how they use the generated manifest and Lua files.
+            <br>
+            <strong>DLC UNLOCKER DISCLAIMER:</strong> The DLC unlocker functionality is not made by the original SteamZL creator.
+            <br>
+            <strong>NOT FOR REDISTRIBUTION:</strong> The generated manifest and Lua files are for personal use only and should not be redistributed.
+            <br>
+            <strong>NO WARRANTY:</strong> This tool is provided as-is without any warranty or guarantee.
+        </p>
+        <div class="footer-meta">
+            <p style="margin-bottom: 8px;">&copy; 2025 rivensis | SteamZL Generator v0.01 beta | Open Source Project</p>
+            <div class="footer-links">
+                <a href="#" onclick="alert('About: SteamZL is an open source Steam manifest and Lua file generator.'); return false;">About</a>
+                <a href="#" onclick="alert('GitHub repository coming soon!'); return false;">GitHub</a>
+                <a href="#" onclick="alert('For support, please check the Help tab.'); return false;">Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Version Badge -->
+    <div class="version-badge">
+        <span class="version-badge-author">made by rivensis</span>
+        <span class="version-badge-version">v0.01 beta</span>
+    </div>
+</body>
+</html>
