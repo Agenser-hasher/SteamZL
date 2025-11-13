@@ -29,6 +29,16 @@ How does it work?
 
 You enter a Steam App ID (like 730 for Counter-Strike), click generate, and you get a ZIP file with your manifest and Lua files ready to use with Steam emulators.
 
+✓ NO LIABILITY - Creators not responsible for any damages or bans
+✓ USER RESPONSIBILITY - Users solely responsible for their actions
+✓ NOT AFFILIATED - Clear statement not affiliated with Valve/Steam
+✓ EDUCATIONAL PURPOSES ONLY - For learning/reference only
+✓ VAC BAN WARNING - Risk of permanent bans if misused
+✓ NO SUPPORT - No guarantee of updates or maintenance
+✓ NO COMMERCIAL USE - Not for profit or resale
+✓ RISK ACKNOWLEDGMENT - Users acknowledge all risks
+✓ USE AT YOUR OWN RISK - Clear warning message
+
 Made by: rivensis | Version: 0.01 beta (still getting better!) | Open Source: Yes!
 
 Fair warning: This only works offline. If you try online multiplayer, you'll get caught by anti-cheat systems. Use it for single-player games only.
